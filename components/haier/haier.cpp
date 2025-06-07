@@ -119,6 +119,7 @@ namespace esphome
                 switch (this->mode)
                 {
                 case climate::CLIMATE_MODE_HEAT_COOL:
+                case climate::CLIMATE_MODE_AUTO:
                     this->ac_.setMode(kHaierAcAuto);
                     break;
                 case climate::CLIMATE_MODE_HEAT:
@@ -132,6 +133,10 @@ namespace esphome
                     break;
                 case climate::CLIMATE_MODE_FAN_ONLY:
                     this->ac_.setMode(kHaierAcFan);
+                    break;
+                case climate::CLIMATE_MODE_OFF:
+                default:
+                    // Handle OFF mode and any other modes
                     break;
                 }
 
@@ -151,6 +156,16 @@ namespace esphome
                     case climate::CLIMATE_FAN_HIGH:
                         this->ac_.setFan(kHaierAcFanHigh);
                         break;
+                    case climate::CLIMATE_FAN_QUIET:
+                    case climate::CLIMATE_FAN_ON:
+                    case climate::CLIMATE_FAN_OFF:
+                    case climate::CLIMATE_FAN_MIDDLE:
+                    case climate::CLIMATE_FAN_FOCUS:
+                    case climate::CLIMATE_FAN_DIFFUSE:
+                    default:
+                        // Handle unsupported fan modes
+                        this->ac_.setFan(kHaierAcFanAuto);
+                        break;
                     }
                 }
 
@@ -162,12 +177,18 @@ namespace esphome
                 case climate::CLIMATE_SWING_VERTICAL:
                     this->ac_.setSwingV(kHaierAcSwingVChg);
                     break;
+                case climate::CLIMATE_SWING_HORIZONTAL:
+                case climate::CLIMATE_SWING_BOTH:
+                default:
+                    // Handle unsupported swing modes
+                    break;
                 }
 
                 this->ac_.setCommand(kHaierAcCmdOn);
             }
 
-            ESP_LOGI(TAG, this->ac_.toString().c_str());
+            String ac_state = this->ac_.toString();
+            ESP_LOGI(TAG, "%s", ac_state.c_str());
         }
 
     } // namespace haier
