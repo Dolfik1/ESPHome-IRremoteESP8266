@@ -6,11 +6,11 @@ from esphome.const import CONF_ID
 AUTO_LOAD = ["climate_ir"]
 
 haier_ns = cg.esphome_ns.namespace("haier")
-HaierClimate = haier_ns.class_("HaierClimate", climate_ir.ClimateIR)
+HaierYRW02Climate = haier_ns.class_("HaierYRW02Climate", climate_ir.ClimateIR)
 
 CONFIG_SCHEMA = climate_ir.CLIMATE_IR_WITH_RECEIVER_SCHEMA.extend(
     {
-        cv.GenerateID(): cv.declare_id(HaierClimate),
+        cv.GenerateID(): cv.declare_id(HaierYRW02Climate),
     }
 )
 

@@ -1,6 +1,6 @@
 #define _IR_ENABLE_DEFAULT_ false
-#define SEND_HAIER_AC true
-#define DECODE_HAIER_AC false
+#define SEND_HAIER_AC_YRW02 true
+#define DECODE_HAIER_AC_YRW02 false
 
 #include "esphome.h"
 #include "ir_Haier.h"
@@ -18,54 +18,78 @@ namespace esphome
         const uint16_t kHaierAcZeroSpace = 650;
         const uint32_t kHaierAcMinGap = 150000;
 
-        static const char *const TAG = "haier.climate";
+        static const char *const TAG = "haier_yrw02.climate";
 
-        void HaierClimate::setup()
+        void HaierYRW02Climate::setup()
         {
             climate_ir::ClimateIR::setup();
             this->apply_state();
         }
 
-        climate::ClimateTraits HaierClimate::traits()
+        climate::ClimateTraits HaierYRW02Climate::traits()
         {
             auto traits = climate_ir::ClimateIR::traits();
-            // Haier supports vertical swing
+            // Haier YRW02 supports both vertical and horizontal swing
             traits.add_supported_swing_mode(climate::CLIMATE_SWING_VERTICAL);
+            traits.add_supported_swing_mode(climate::CLIMATE_SWING_HORIZONTAL);
+            traits.add_supported_swing_mode(climate::CLIMATE_SWING_BOTH);
             return traits;
         }
 
-        void HaierClimate::transmit_state()
+        void HaierYRW02Climate::transmit_state()
         {
             this->apply_state();
             this->send();
         }
 
-        void HaierClimate::set_health(bool on)
+        void HaierYRW02Climate::set_health(bool on)
         {
             this->ac_.setHealth(on);
             ESP_LOGI(TAG, "Setting health filter: %s", on ? "ON" : "OFF");
         }
 
-        bool HaierClimate::get_health() const
+        bool HaierYRW02Climate::get_health() const
         {
             return this->ac_.getHealth();
         }
 
-        void HaierClimate::set_sleep(bool on)
+        void HaierYRW02Climate::set_sleep(bool on)
         {
             this->ac_.setSleep(on);
             ESP_LOGI(TAG, "Setting sleep mode: %s", on ? "ON" : "OFF");
         }
 
-        bool HaierClimate::get_sleep() const
+        bool HaierYRW02Climate::get_sleep() const
         {
             return this->ac_.getSleep();
         }
 
-        void HaierClimate::send()
+        void HaierYRW02Climate::set_turbo(bool on)
+        {
+            this->ac_.setTurbo(on);
+            ESP_LOGI(TAG, "Setting turbo mode: %s", on ? "ON" : "OFF");
+        }
+
+        bool HaierYRW02Climate::get_turbo() const
+        {
+            return this->ac_.getTurbo();
+        }
+
+        void HaierYRW02Climate::set_quiet(bool on)
+        {
+            this->ac_.setQuiet(on);
+            ESP_LOGI(TAG, "Setting quiet mode: %s", on ? "ON" : "OFF");
+        }
+
+        bool HaierYRW02Climate::get_quiet() const
+        {
+            return this->ac_.getQuiet();
+        }
+
+        void HaierYRW02Climate::send()
         {
             uint8_t *message = this->ac_.getRaw();
-            uint8_t length = kHaierACStateLength;
+            uint8_t length = kHaierACYRW02StateLength;
 
             auto transmit = this->transmitter_->transmit();
             auto *data = transmit.get_data();
@@ -106,33 +130,34 @@ namespace esphome
             transmit.perform();
         }
 
-        void HaierClimate::apply_state()
+        void HaierYRW02Climate::apply_state()
         {
             if (this->mode == climate::CLIMATE_MODE_OFF)
             {
-                this->ac_.setCommand(kHaierAcCmdOff);
+                this->ac_.setPower(false);
             }
             else
             {
+                this->ac_.setPower(true);
                 this->ac_.setTemp(this->target_temperature);
 
                 switch (this->mode)
                 {
                 case climate::CLIMATE_MODE_HEAT_COOL:
                 case climate::CLIMATE_MODE_AUTO:
-                    this->ac_.setMode(kHaierAcAuto);
+                    this->ac_.setMode(kHaierAcYrw02Auto);
                     break;
                 case climate::CLIMATE_MODE_HEAT:
-                    this->ac_.setMode(kHaierAcHeat);
+                    this->ac_.setMode(kHaierAcYrw02Heat);
                     break;
                 case climate::CLIMATE_MODE_COOL:
-                    this->ac_.setMode(kHaierAcCool);
+                    this->ac_.setMode(kHaierAcYrw02Cool);
                     break;
                 case climate::CLIMATE_MODE_DRY:
-                    this->ac_.setMode(kHaierAcDry);
+                    this->ac_.setMode(kHaierAcYrw02Dry);
                     break;
                 case climate::CLIMATE_MODE_FAN_ONLY:
-                    this->ac_.setMode(kHaierAcFan);
+                    this->ac_.setMode(kHaierAcYrw02Fan);
                     break;
                 case climate::CLIMATE_MODE_OFF:
                 default:
@@ -145,16 +170,16 @@ namespace esphome
                     switch (this->fan_mode.value())
                     {
                     case climate::CLIMATE_FAN_AUTO:
-                        this->ac_.setFan(kHaierAcFanAuto);
+                        this->ac_.setFan(kHaierAcYrw02FanAuto);
                         break;
                     case climate::CLIMATE_FAN_LOW:
-                        this->ac_.setFan(kHaierAcFanLow);
+                        this->ac_.setFan(kHaierAcYrw02FanLow);
                         break;
                     case climate::CLIMATE_FAN_MEDIUM:
-                        this->ac_.setFan(kHaierAcFanMed);
+                        this->ac_.setFan(kHaierAcYrw02FanMed);
                         break;
                     case climate::CLIMATE_FAN_HIGH:
-                        this->ac_.setFan(kHaierAcFanHigh);
+                        this->ac_.setFan(kHaierAcYrw02FanHigh);
                         break;
                     case climate::CLIMATE_FAN_QUIET:
                     case climate::CLIMATE_FAN_ON:
@@ -164,7 +189,7 @@ namespace esphome
                     case climate::CLIMATE_FAN_DIFFUSE:
                     default:
                         // Handle unsupported fan modes
-                        this->ac_.setFan(kHaierAcFanAuto);
+                        this->ac_.setFan(kHaierAcYrw02FanAuto);
                         break;
                     }
                 }
@@ -172,19 +197,25 @@ namespace esphome
                 switch (this->swing_mode)
                 {
                 case climate::CLIMATE_SWING_OFF:
-                    this->ac_.setSwingV(kHaierAcSwingVOff);
+                    this->ac_.setSwingV(kHaierAcYrw02SwingVOff);
+                    this->ac_.setSwingH(kHaierAcYrw02SwingHMiddle);
                     break;
                 case climate::CLIMATE_SWING_VERTICAL:
-                    this->ac_.setSwingV(kHaierAcSwingVChg);
+                    this->ac_.setSwingV(kHaierAcYrw02SwingVAuto);
+                    this->ac_.setSwingH(kHaierAcYrw02SwingHMiddle);
                     break;
                 case climate::CLIMATE_SWING_HORIZONTAL:
+                    this->ac_.setSwingV(kHaierAcYrw02SwingVOff);
+                    this->ac_.setSwingH(kHaierAcYrw02SwingHAuto);
+                    break;
                 case climate::CLIMATE_SWING_BOTH:
+                    this->ac_.setSwingV(kHaierAcYrw02SwingVAuto);
+                    this->ac_.setSwingH(kHaierAcYrw02SwingHAuto);
+                    break;
                 default:
                     // Handle unsupported swing modes
                     break;
                 }
-
-                this->ac_.setCommand(kHaierAcCmdOn);
             }
 
             String ac_state = this->ac_.toString();
