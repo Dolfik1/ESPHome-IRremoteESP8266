@@ -2,46 +2,34 @@
 
 #include "esphome/core/log.h"
 #include "esphome/core/component.h"
-#include "esphome/components/climate/climate.h"
-#include "esphome/components/remote_transmitter/remote_transmitter.h"
-#include "esphome/components/remote_base/remote_base.h"
-#include "ir_Haier.h"
+#include "esphome/core/automation.h"
+#include "esphome/components/climate_ir/climate_ir.h"
 
-namespace esphome
-{
-    namespace haier
-    {
-        enum Model {
-            V9014557_A = haier_ac176_remote_model_t::V9014557_A,
-            V9014557_B = haier_ac176_remote_model_t::V9014557_B
-        };
+namespace esphome {
+namespace haier {
 
-        class HaierClimate : public climate::Climate, public Component, public remote_base::RemoteReceiverListener
-        {
-        public:
-            void setup() override;
-            void dump_config() override;
-            void set_model(const Model model);
-            void set_transmitter(remote_transmitter::RemoteTransmitterComponent *transmitter) { this->transmitter_ = transmitter; }
-            void set_receiver(remote_base::RemoteReceiverBase *receiver);
-            
-            climate::ClimateTraits traits() override;
-            
-            // RemoteReceiverListener interface
-            bool on_receive(remote_base::RemoteReceiveData data) override;
+class HaierClimate : public climate_ir::ClimateIR {
+ public:
+  HaierClimate()
+      : ClimateIR(16, 30, 1.0f, true, true,
+                  {climate::CLIMATE_FAN_AUTO, climate::CLIMATE_FAN_LOW, 
+                   climate::CLIMATE_FAN_MEDIUM, climate::CLIMATE_FAN_HIGH},
+                  {climate::CLIMATE_SWING_OFF, climate::CLIMATE_SWING_VERTICAL,
+                   climate::CLIMATE_SWING_HORIZONTAL, climate::CLIMATE_SWING_BOTH}) {}
 
-        protected:
-            void control(const climate::ClimateCall &call) override;
+  void setup() override;
+  
+ protected:
+  void transmit_state() override;
+  bool on_receive(remote_base::RemoteReceiveData data) override;
 
-        private:
-            void transmit_state();
-            void apply_state();
-            void send_ir();
+ private:
+  void encode_state_();
+  bool decode_state_(remote_base::RemoteReceiveData data);
+  
+  uint8_t remote_state_[13] = {0};
+  uint8_t calculate_checksum_();
+};
 
-            IRHaierAC176 ac_ = IRHaierAC176(255); // pin is not used
-            remote_transmitter::RemoteTransmitterComponent *transmitter_{nullptr};
-            remote_base::RemoteReceiverBase *receiver_{nullptr};
-        };
-
-    } // namespace haier
-} // namespace esphome
+}  // namespace haier
+}  // namespace esphome
