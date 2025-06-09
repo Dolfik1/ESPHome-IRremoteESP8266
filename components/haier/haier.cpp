@@ -1,6 +1,6 @@
 #define _IR_ENABLE_DEFAULT_ false
-#define SEND_HAIER_AC_YRW02 true
-#define DECODE_HAIER_AC_YRW02 false
+#define SEND_HAIER_AC176 true
+#define DECODE_HAIER_AC176 false
 
 #include "esphome.h"
 #include "ir_Haier.h"
@@ -23,6 +23,8 @@ namespace esphome
         void HaierYRW02Climate::setup()
         {
             climate_ir::ClimateIR::setup();
+            // Устанавливаем модель A для YRW02
+            this->ac_.setModel(haier_ac176_remote_model_t::V9014557_A);
             this->apply_state();
         }
 
@@ -39,7 +41,7 @@ namespace esphome
         void HaierYRW02Climate::transmit_state()
         {
             this->apply_state();
-            this->send();
+            this->send_ir();
         }
 
         void HaierYRW02Climate::set_health(bool on)
@@ -86,10 +88,10 @@ namespace esphome
             return this->ac_.getQuiet();
         }
 
-        void HaierYRW02Climate::send()
+        void HaierYRW02Climate::send_ir()
         {
             uint8_t *message = this->ac_.getRaw();
-            uint8_t length = kHaierACYRW02StateLength;
+            uint8_t length = kHaierACYRW02StateLength; // 13 байт для YRW02
 
             auto transmit = this->transmitter_->transmit();
             auto *data = transmit.get_data();
@@ -181,14 +183,7 @@ namespace esphome
                     case climate::CLIMATE_FAN_HIGH:
                         this->ac_.setFan(kHaierAcYrw02FanHigh);
                         break;
-                    case climate::CLIMATE_FAN_QUIET:
-                    case climate::CLIMATE_FAN_ON:
-                    case climate::CLIMATE_FAN_OFF:
-                    case climate::CLIMATE_FAN_MIDDLE:
-                    case climate::CLIMATE_FAN_FOCUS:
-                    case climate::CLIMATE_FAN_DIFFUSE:
                     default:
-                        // Handle unsupported fan modes
                         this->ac_.setFan(kHaierAcYrw02FanAuto);
                         break;
                     }
@@ -213,7 +208,6 @@ namespace esphome
                     this->ac_.setSwingH(kHaierAcYrw02SwingHAuto);
                     break;
                 default:
-                    // Handle unsupported swing modes
                     break;
                 }
             }

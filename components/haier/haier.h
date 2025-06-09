@@ -35,10 +35,10 @@ namespace esphome
             void transmit_state() override;
 
         private:
-            void send();
+            void send_ir();
             void apply_state();
 
-            IRHaierACYRW02 ac_ = IRHaierACYRW02(255); // pin is not used
+            IRHaierAC176 ac_ = IRHaierAC176(255); // используем базовый класс вместо YRW02
         };
 
     } // namespace haier
