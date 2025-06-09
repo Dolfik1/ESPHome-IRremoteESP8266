@@ -14,8 +14,9 @@ MODELS = {
     "V9014557_B": Model.V9014557_B,
 }
 
-CONFIG_SCHEMA = climate_ir.climate_ir_with_receiver_schema(HaierClimate).extend(
+CONFIG_SCHEMA = climate_ir.CLIMATE_IR_WITH_RECEIVER_SCHEMA.extend(
     {
+        cv.GenerateID(): cv.declare_id(HaierClimate),
         cv.Optional(CONF_MODEL, default="V9014557_A"): cv.enum(MODELS),
     }
 )
