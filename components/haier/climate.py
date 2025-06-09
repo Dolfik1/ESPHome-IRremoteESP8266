@@ -1,13 +1,13 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import climate, remote_transmitter, remote_receiver
+from esphome.components import climate, remote_transmitter, remote_base
 from esphome.const import CONF_ID, CONF_MODEL
 
 AUTO_LOAD = ["climate"]
 DEPENDENCIES = ["remote_transmitter"]
 
 haier_ns = cg.esphome_ns.namespace("haier")
-HaierClimate = haier_ns.class_("HaierClimate", climate.Climate, cg.Component)
+HaierClimate = haier_ns.class_("HaierClimate", climate.Climate, cg.Component, remote_base.RemoteReceiverListener)
 
 Model = haier_ns.enum("Model")
 MODELS = {
@@ -22,7 +22,7 @@ CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(
     {
         cv.GenerateID(): cv.declare_id(HaierClimate),
         cv.GenerateID(CONF_TRANSMITTER_ID): cv.use_id(remote_transmitter.RemoteTransmitterComponent),
-        cv.Optional(CONF_RECEIVER_ID): cv.use_id(remote_receiver.RemoteReceiverComponent),
+        cv.Optional(CONF_RECEIVER_ID): cv.use_id(remote_base.RemoteReceiverBase),
         cv.Optional(CONF_MODEL, default="V9014557_A"): cv.enum(MODELS),
     }
 ).extend(cv.COMPONENT_SCHEMA)

@@ -26,8 +26,7 @@ namespace esphome
             this->apply_state();
             
             if (this->receiver_ != nullptr) {
-                auto f = std::bind(&HaierClimate::on_receive, this, std::placeholders::_1);
-                this->receiver_->register_listener(f);
+                this->receiver_->register_listener(this);
             }
         }
 
@@ -42,7 +41,7 @@ namespace esphome
             this->ac_.setModel((haier_ac176_remote_model_t) model);
         }
 
-        void HaierClimate::set_receiver(remote_receiver::RemoteReceiverComponent *receiver)
+        void HaierClimate::set_receiver(remote_base::RemoteReceiverBase *receiver)
         {
             this->receiver_ = receiver;
         }
@@ -104,11 +103,12 @@ namespace esphome
             this->send_ir();
         }
 
-        void HaierClimate::on_receive(remote_receiver::RemoteReceiveData data)
+        bool HaierClimate::on_receive(remote_base::RemoteReceiveData data)
         {
             ESP_LOGD(TAG, "Received IR data");
-            // Простая реализация - в реальности нужно декодировать данные
-            // Это требует более сложной логики декодирования протокола Haier
+            // Для простоты пока возвращаем false
+            // В будущем здесь можно добавить декодирование протокола Haier
+            return false;
         }
 
         void HaierClimate::send_ir()
