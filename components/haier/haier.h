@@ -10,35 +10,33 @@ namespace esphome
 {
     namespace haier
     {
-        class HaierYRW02Climate : public climate_ir::ClimateIR
+        enum Model {
+            V9014557_A = haier_ac176_remote_model_t::V9014557_A,
+            V9014557_B = haier_ac176_remote_model_t::V9014557_B
+        };
+
+        class HaierClimate : public climate_ir::ClimateIR
         {
         public:
-            HaierYRW02Climate()
+            HaierClimate()
                 : ClimateIR(16, 30, 1.0f, true, true,
                             {climate::CLIMATE_FAN_AUTO, climate::CLIMATE_FAN_LOW, climate::CLIMATE_FAN_MEDIUM, climate::CLIMATE_FAN_HIGH},
                             {climate::CLIMATE_SWING_OFF, climate::CLIMATE_SWING_VERTICAL, climate::CLIMATE_SWING_HORIZONTAL, climate::CLIMATE_SWING_BOTH}) {}
 
+            void set_model(const Model model);
+            
             void setup() override;
             climate::ClimateTraits traits() override;
 
-            // Additional Haier YRW02-specific methods
-            void set_health(bool on);
-            bool get_health() const;
-            void set_sleep(bool on);
-            bool get_sleep() const;
-            void set_turbo(bool on);
-            bool get_turbo() const;
-            void set_quiet(bool on);
-            bool get_quiet() const;
-
         protected:
             void transmit_state() override;
+            bool on_receive(remote_base::RemoteReceiveData data) override;
 
         private:
-            void send_ir();
+            void send();
             void apply_state();
 
-            IRHaierAC176 ac_ = IRHaierAC176(255); // используем базовый класс вместо YRW02
+            IRHaierAC176 ac_ = IRHaierAC176(255); // pin is not used
         };
 
     } // namespace haier
